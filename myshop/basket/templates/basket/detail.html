@@ -1,0 +1,78 @@
+{% extends "shop/base.html" %}
+{% load static %}
+{% block title %}
+    Your shopping basket
+{% endblock %}
+{% block content %}
+    <h1>Your shopping basket</h1>
+    <table class="basket">
+        <thead>
+        <tr>
+            <th>Image</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Remove</th>
+            <th>Unit price</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in basket %}
+            {% with product=item.product %}
+                <tr>
+                    <td>
+                        <a href="{{ product.get_absolute_url }}">
+                            <img src="
+                                {% if product.image %}
+                                    {{ product.image.url }}
+                                {% else %}
+                                    {% static "shop/img/no_image.png" %}
+                                {% endif %}">
+                        </a>
+                    </td>
+                    <td>{{ product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td><a href="{% url "basket:basket_remove" product.id%}">Remove</a></td>
+                    <td class="num">${{ item.price }}</td>
+                    <td class="num">${{ item.total_price }}</td>
+                </tr>
+            {% endwith %}
+        {% endfor %}
+        {% if basket.coupon %}
+            <tr class="subtotal">
+                <td>Subtotal</td>
+                <td colspan="4"></td>
+                <td class="num">${{ basket.get_total_price }}</td>
+            </tr>
+            <tr>
+                <td>
+                    "{{ basket.coupon.code }}" coupon
+                    ({{ basket.coupon.discount }}% off)
+                </td>
+                <td colspan="4"></td>
+                <td class="num neg">
+                    - ${{ basket.get_discount|floatformat:"2" }}
+                </td>
+            </tr>
+        {% endif %}
+        <tr class="total">
+            <td>Total</td>
+            <td colspan="4"></td>
+            <td class="num">
+                ${{ basket.get_total_price_after_discount|floatformat:"2" }}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <form action="{% url "coupons:apply" %}" method="post">
+        {{ coupon_apply_form }}
+        <input type="submit" value="Apply">
+        {% csrf_token %}
+    </form>
+    <p class="text-right">
+        <a href="{% url "shop:product_list" %}" class="button light">Continue shopping</a>
+        <a href="{% url "orders:order_create" %}" class="button">
+            Checkout
+        </a>
+    </p>
+{% endblock %}
